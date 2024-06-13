@@ -1,7 +1,7 @@
 package juhe
 
 const (
-	apiUrl = "http://apis.juhe.cn"
+	apiUrl = "http://apis.juhe.cn/"
 )
 
 const (

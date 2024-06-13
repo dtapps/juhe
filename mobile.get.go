@@ -2,7 +2,6 @@ package juhe
 
 import (
 	"context"
-	"go.dtapp.net/gojson"
 	"go.dtapp.net/gorequest"
 	"net/http"
 )
@@ -33,18 +32,19 @@ func newMobileGetResult(result MobileGetResponse, body []byte, http gorequest.Re
 // MobileGet 手机号码归属地
 // https://www.juhe.cn/docs/api/id/11
 func (c *Client) MobileGet(ctx context.Context, phone string, key string, notMustParams ...gorequest.Params) (*MobileGetResult, error) {
+
+	// OpenTelemetry链路追踪
+	ctx = c.TraceStartSpan(ctx, "mobile/get")
+	defer c.TraceEndSpan()
+
 	// 参数
 	params := gorequest.NewParamsWith(notMustParams...)
 	params.Set("phone", phone)  // 需要查询的手机号码或手机号码前7位
 	params.Set("key", key)      // 在个人中心->我的数据,接口名称上方查看
 	params.Set("dtype", "json") // 返回数据的格式,xml或json，默认json
+
 	// 请求
-	request, err := c.request(ctx, apiUrl+"/mobile/get", params, http.MethodGet)
-	if err != nil {
-		return newMobileGetResult(MobileGetResponse{}, request.ResponseBody, request), err
-	}
-	// 定义
 	var response MobileGetResponse
-	err = gojson.Unmarshal(request.ResponseBody, &response)
+	request, err := c.request(ctx, "mobile/get", params, http.MethodGet, &response)
 	return newMobileGetResult(response, request.ResponseBody, request), err
 }
